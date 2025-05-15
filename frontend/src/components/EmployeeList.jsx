@@ -1,61 +1,82 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Table, TableHead, TableBody, TableRow, TableCell,
-    Paper, Typography,
-
+    Card, CardContent, Typography, Grid, Button, TextField, Stack, Box
 } from '@mui/material';
-// import DeleteIcon from '@mui/icons-material/Delete';
-// import EditIcon from '@mui/icons-material/Edit';
 import API from '../api';
 
 const EmployeeList = ({ onEdit }) => {
     const [employees, setEmployees] = useState([]);
+    const [search, setSearch] = useState('');
 
     const fetchEmployees = async () => {
-        const response = await API.get('/employees/');
-        setEmployees(response.data);
+        try {
+            const res = await API.get('/employees/');
+            setEmployees(res.data);
+        } catch (error) {
+            console.error('Error fetching employees:', error);
+        }
     };
 
-    // const handleDelete = async (id) => {
-    //     await API.delete(`/employees/${id}/`);
-    //     fetchEmployees(); // refresh
-    // };
+    const deleteEmployee = async (id) => {
+        try {
+            await API.delete(`/employees/${id}/`);
+            fetchEmployees();
+        } catch (error) {
+            console.error('Error deleting employee:', error);
+        }
+    };
 
     useEffect(() => {
         fetchEmployees();
     }, []);
 
+    const filtered = employees.filter((emp) =>
+        emp.full_name.toLowerCase().includes(search.toLowerCase())
+    );
+
     return (
-        <Paper sx={{ padding: 2 }}>
-            <Typography variant="h6" gutterBottom>Employee List</Typography>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Name</TableCell>
-                        <TableCell>Email</TableCell>
-                        <TableCell>Department</TableCell>
-                        <TableCell>Designation</TableCell>
-                        <TableCell>Actions</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {employees.map(emp => (
-                        <TableRow key={emp.id}>
-                            <TableCell>{emp.full_name}</TableCell>
-                            <TableCell>{emp.email}</TableCell>
-                            <TableCell>{emp.department}</TableCell>
-                            <TableCell>{emp.designation}</TableCell>
-                            <TableCell>
-                                {/* <button onClick={() => onEdit(emp)}>Edit<button>
-                                    <button onClick={() => handleDelete(emp.id)}> Delete<button> */}
-                                {/* <IconButton onClick={() => onEdit(emp)}><EditIcon /></IconButton>
-                                <IconButton onClick={() => handleDelete(emp.id)}><DeleteIcon /></IconButton> */}
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </Paper>
+        <Box sx={{ mt: 3 }}>
+            <TextField
+                label="Search by name"
+                variant="outlined"
+                fullWidth
+                sx={{ mb: 2 }}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+            />
+
+            <Grid container spacing={2}>
+                {filtered.length ? (
+                    filtered.map((emp) => (
+                        <Grid item xs={12} sm={6} md={4} key={emp.id}>
+                            <Card>
+                                <CardContent>
+                                    <Typography variant="h6">{emp.full_name}</Typography>
+                                    <Typography variant="body2">{emp.designation} - {emp.department}</Typography>
+                                    <Typography>Email: {emp.email}</Typography>
+                                    <Typography>Phone: {emp.phone}</Typography>
+                                    <Typography>Salary: ₹{emp.salary}</Typography>
+                                    <Typography>Status: {emp.status}</Typography>
+
+                                    <Stack direction="row" spacing={1} mt={2}>
+                                        <Button variant="outlined" onClick={() => onEdit(emp)}>
+                                            Edit
+                                        </Button>
+                                        <Button variant="contained" color="error" onClick={() => deleteEmployee(emp.id)}>
+                                            Delete
+                                        </Button>
+                                    </Stack>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+                    ))
+                ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2, mx: 'auto' }}>
+                        No employees found.
+                    </Typography>
+                )}
+            </Grid>
+        </Box>
     );
 };
 

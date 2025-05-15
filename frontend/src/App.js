@@ -1,23 +1,27 @@
 import React, { useState } from 'react';
-import { Container } from '@mui/material';
+import { Container, Typography } from '@mui/material';
 import EmployeeForm from './components/EmployeeForm';
 import EmployeeList from './components/EmployeeList';
 
-const App = () => {
+function App() {
   const [selected, setSelected] = useState(null);
   const [refresh, setRefresh] = useState(false);
 
-  const handleSuccess = () => {
+  const handleRefresh = () => {
     setSelected(null);
     setRefresh(!refresh);
   };
 
   return (
-    <Container maxWidth="md">
-      <EmployeeForm selected={selected} onSuccess={handleSuccess} />
+    <Container>
+      <Typography variant="h4" sx={{ my: 3 }} align="center">
+        Employee Management System
+      </Typography>
+
+      <EmployeeForm selected={selected} onSuccess={handleRefresh} />
       <EmployeeList key={refresh} onEdit={setSelected} />
     </Container>
   );
-};
+}
 
 export default App;
